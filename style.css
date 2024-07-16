@@ -1,0 +1,30 @@
+body {
+    padding-top: 56px;
+    background-color: #0FA58C; /* Light background color */
+    color: #343a40; /* Dark text color */
+
+}
+
+.img-fluid {
+    max-height: 300px;
+    object-fit: cover;
+}
+
+.reactions {
+    margin-bottom: 10px;
+}
+
+.reactions .emoji {
+    cursor: pointer;
+    margin-right: 10px;
+}
+
+.comment-list {
+    list-style-type: none;
+    padding-left: 0;
+}
+
+.comment-list li {
+    border-bottom: 1px solid #ccc;
+    padding: 5px 0;
+}

@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blog</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="#">MK Blog</a>
+        <div class="collapse navbar-collapse">
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="post.html">Post a Picture</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#" id="logout">Logout</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="index.html">Home</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="row" id="blog-posts">
+            <!-- Blog posts will be dynamically inserted here -->
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Function to get logged-in user's name
+        function getLoggedInUserName() {
+            return localStorage.getItem('loggedInName') || 'Anonymous';
+        }
+
+        // Define blogPosts array with default values or retrieve from localStorage
+        let blogPosts = JSON.parse(localStorage.getItem('blogPosts')) || [];
+
+        // Function to render blog posts
+        function renderBlogPosts() {
+            const blogContainer = $('#blog-posts');
+            blogContainer.empty(); // Clear existing content
+            blogPosts.forEach(post => {
+                const col = $(`
+                    <div class="col-md-4 mb-4">
+                        <div class="card">
+                            <img src="${post.src}" alt="${post.alt}" class="card-img-top img-fluid">
+                            <div class="card-body">
+                                <h5 class="card-title">${post.alt}</h5>
+                                <div class="reactions">
+                                    <span class="emoji like" data-post-id="${post.id}" data-reaction="like">👍 ${post.reactions.like}</span>
+                                    <span class="emoji love" data-post-id="${post.id}" data-reaction="love">❤️ ${post.reactions.love}</span>
+                                    <span class="emoji laugh" data-post-id="${post.id}" data-reaction="laugh">😂 ${post.reactions.laugh}</span>
+                                </div>
+                                <div class="comments">
+                                    <h6>Comments</h6>
+                                    <ul class="comment-list">
+                                        ${post.comments.map(comment => `<li><strong>${comment.name}:</strong> ${comment.text}</li>`).join('')}
+                                    </ul>
+                                    <input type="text" class="form-control comment-name" data-post-id="${post.id}" placeholder="Your Name" value="${getLoggedInUserName()}">
+                                    <textarea class="form-control comment-input" data-post-id="${post.id}" placeholder="Add a comment"></textarea>
+                                    <button class="btn btn-primary mt-2 add-comment" data-post-id="${post.id}">Add Comment</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `);
+                blogContainer.append(col); // Append each post to blogContainer
+            });
+        }
+
+        // Call renderBlogPosts function to display posts initially
+        $(document).ready(function() {
+            renderBlogPosts();
+
+            // Event handler for emoji reactions
+            $(document).on('click', '.emoji', function() {
+                const postId = $(this).data('post-id');
+                const reaction = $(this).data('reaction');
+                const post = blogPosts.find(p => p.id === postId);
+
+                // Check if user has already reacted
+                if ($(this).hasClass('reacted')) {
+                    alert('You have already reacted to this post.');
+                    return;
+                }
+
+                post.reactions[reaction]++;
+                $(this).text(`${$(this).text().split(' ')[0]} ${post.reactions[reaction]}`);
+                $(this).addClass('reacted'); // Mark as reacted
+                localStorage.setItem('blogPosts', JSON.stringify(blogPosts));
+            });
+
+            // Event handler for adding comments
+            $(document).on('click', '.add-comment', function() {
+                const postId = $(this).data('post-id');
+                const commentInput = $(`.comment-input[data-post-id="${postId}"]`);
+                const commentNameInput = $(`.comment-name[data-post-id="${postId}"]`);
+                const comment = commentInput.val();
+                const name = commentNameInput.val() || getLoggedInUserName();
+                if (comment && name) {
+                    const post = blogPosts.find(p => p.id === postId);
+                    post.comments.push({ name, text: comment });
+                    saveBlogPosts(); // Save updated posts to localStorage
+                    renderBlogPosts(); // Render posts again to reflect changes
+                    commentInput.val('');
+                    commentNameInput.val(name);
+                }
+            });
+
+            // Logout function
+            $('#logout').click(function() {
+                localStorage.removeItem('loggedInName');
+                window.location.href = 'login.html'; // Redirect to login page
+            });
+
+            // Function to save blog posts to localStorage
+            function saveBlogPosts() {
+                localStorage.setItem('blogPosts', JSON.stringify(blogPosts));
+            }
+        });
+    </script>
+</body>
+</html>
